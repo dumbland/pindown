@@ -52,7 +52,9 @@ def main():
     log("{0} stopwords loaded.".format(len(stopwords), level=LOG_NOTICE))
     
     # load template
-    jinja_env = Environment(loader=PackageLoader('pindown', '.'))
+    jinja_env = Environment(loader=PackageLoader('pindown', '.'),
+                            trim_blocks=True,
+                            lstrip_blocks=True)
     try:
         template = jinja_env.get_template(args.template.name)
         log("Loaded template '{0}'".format(args.template.name), level=LOG_NOTICE)
@@ -105,17 +107,12 @@ def main():
             slug = custom_slug_builder(pin.description)
             write_path = os.path.join(args.output, slug + ".md")
             
-            # place the description in MD blockquotes
-            contents = u""
-            for para in pin.extended.encode('utf-8').split('\n'):
-                contents += u"> {0}\n".format(para.strip())
-            
             # build a context for jinja
             context = { 'title': pin.description.encode('utf-8'),
                         'link': pin.url,
                         'date': pin.time.replace(tzinfo=utc_tz).astimezone(local_tz).isoformat(),
                         'tags': ", ".join(pin.tags),
-                        'contents': contents }
+                        'contents': pin.extended.encode('utf-8') }
             
             # render template
             try:

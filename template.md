@@ -5,4 +5,6 @@ Date: {{ date }}
 Tags: {{ tags }}
 Status: draft
 
-{{ contents }}
+{% for cline in contents.split('\n') %}
+> {{ cline }}
+{% endfor %}

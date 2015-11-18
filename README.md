@@ -20,16 +20,17 @@ This will get updated each time the script is run so that only the most recent b
 
 ## Usage
 
-Run the script manually, or set up a cronjob to run it regularly. 
+Run the script manually, or set up a cronjob to run it regularly. A default template is supplied which will produce a Markdown-formatted text file suitable for [Pelican](http://blog.getpelican.com).
 
 ## History
 
-### 2015-11-18:
+#### 2015-11-18:
 
 + Removed custom timestamp class.
 + Script now defaults to using external templates and stopword lists. Hardcoded defaults in case of error.
++ No longer default to making the description of a bookmark a blockquote. This is now handled in the template, if need be.
 
-### 2015-11-17:
+#### 2015-11-17:
 
 + Added debug mode (-d) to disable output.
 + Added support for optional Jinja2 templates (-t). Default template is still hard-coded.
