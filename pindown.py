@@ -13,6 +13,7 @@ from dateutil import parser
 import pinboard
 from slugify import Slugify
 from jinja2 import Environment, PackageLoader
+from tzlocal import get_localzone
 
 LOG_NOTICE = 2
 LOG_WARNING = 2
@@ -71,8 +72,7 @@ def main():
         try:
             local_tz = pytz.timezone(args.timezone)
         except Exception as e:
-            log("Could not assign custom timezone ({0}), using timezone from config.".format(e.message), level=LOG_ERROR)
-            local_tz = pytz.timezone(config['local_tz'])
+            log("Could not assign custom timezone ({0})".format(e.message), level=LOG_ERROR)
     else:
         local_tz = pytz.timezone(config['local_tz'])
     utc_tz = pytz.UTC

@@ -6,15 +6,15 @@ Create text files for static site generators from Pinboard.in bookmarks.
 
 A sample config.ini file is included. There are three options:
 
-### local_tz
+#### local_tz
 
 Which timezone you want to use for posts. Pindown uses timezones from the [Olson database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).
 
-### pinboard_api_token
+#### pinboard_api_token
 
 You will need to add your own Pinboard API token. This can be found [here](https://pinboard.in/settings/password). 
 
-### last_import
+#### last_import
 
 This will get updated each time the script is run so that only the most recent bookmarks will be used.
 
@@ -44,7 +44,7 @@ Run the script manually, or set up a cronjob to run it regularly.
 
 ## Credits
 
-Written by Dave Raftery. Mostly a learning exercise.
+Written by Dave Raftery. Mostly a learning exercise, hence the excessive commenting.
 
 ## License
 
