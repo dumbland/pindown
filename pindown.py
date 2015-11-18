@@ -64,7 +64,7 @@ def main():
                                          "Category: linklist\n"
                                          "Link: {{ link }}\n"
                                          "Date: {{ date }}\n"
-                                         "Tags: {{ tags }}\n"
+                                         "Tags: {{ tags|join(', ') }}\n"
                                          "Status: draft\n"
                                          "\n"
                                          "{{ contents }}\n")
@@ -111,7 +111,7 @@ def main():
             context = { 'title': pin.description.encode('utf-8'),
                         'link': pin.url,
                         'date': pin.time.replace(tzinfo=utc_tz).astimezone(local_tz).isoformat(),
-                        'tags': ", ".join(pin.tags),
+                        'tags': pin.tags,
                         'contents': pin.extended.encode('utf-8') }
             
             # render template

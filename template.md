@@ -2,7 +2,7 @@ Title: {{ title }}
 Category: linklist
 Link: {{ link }}
 Date: {{ date }}
-Tags: {{ tags }}
+Tags: {{ tags|join(', ') }}
 Status: draft
 
 {% for cline in contents.split('\n') %}
