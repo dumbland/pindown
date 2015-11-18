@@ -113,7 +113,7 @@ def main():
             # build a context for jinja
             context = { 'title': pin.description.encode('utf-8'),
                         'link': pin.url,
-                        'date': Timestamp(pin.time).iso(local_tz),
+                        'date': pin.time.isoformat().replace(tzinfo=utc_tz).astimezone(local_tz),
                         'tags': ", ".join(pin.tags),
                         'contents': contents }
             
