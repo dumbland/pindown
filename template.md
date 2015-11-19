@@ -1,10 +1,10 @@
-Title: {{ title }}
+Title: {{ description }}
 Category: linklist
-Link: {{ link }}
+Link: {{ url }}
 Date: {{ date }}
 Tags: {{ tags|join(', ') }}
 Status: draft
 
-{% for cline in contents.split('\n') %}
-> {{ cline }}
+{% for line in extended.split('\n') %}
+> {{ line }}
 {% endfor %}

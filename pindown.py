@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import argparse
 import os
 import os.path
 import pytz
 import sys
-import argparse
 from ConfigParser import SafeConfigParser
 from datetime import datetime
 from dateutil import parser
 
 import pinboard
-from slugify import Slugify
 from jinja2 import Environment, PackageLoader
+from slugify import Slugify
 from tzlocal import get_localzone
 
 LOG_NOTICE = 2
@@ -60,14 +60,14 @@ def main():
         log("Loaded template '{0}'".format(args.template.name), level=LOG_NOTICE)
     except Exception as e:
         log("Could not load custom template '{0}', using default".format(e.message), level=LOG_ERROR)
-        template = jinja_env.from_string("Title: {{ title }}\n"
+        template = jinja_env.from_string("Title: {{ description }}\n"
                                          "Category: linklist\n"
-                                         "Link: {{ link }}\n"
+                                         "Link: {{ url }}\n"
                                          "Date: {{ date }}\n"
                                          "Tags: {{ tags|join(', ') }}\n"
                                          "Status: draft\n"
                                          "\n"
-                                         "{{ contents }}\n")
+                                         "{{ extended }}\n")
     
     # prepare timezones
     if args.timezone is not None:
@@ -108,11 +108,12 @@ def main():
             write_path = os.path.join(args.output, slug + ".md")
             
             # build a context for jinja
-            context = { 'title': pin.description.encode('utf-8'),
-                        'link': pin.url,
+            context = { 'description': pin.description.encode('utf-8'),
+                        'url': pin.url,
+                        'dt': pin.time.replace(tzinfo=utc_tz),
                         'date': pin.time.replace(tzinfo=utc_tz).astimezone(local_tz).isoformat(),
                         'tags': pin.tags,
-                        'contents': pin.extended.encode('utf-8') }
+                        'extended': pin.extended.encode('utf-8') }
             
             # render template
             try:
