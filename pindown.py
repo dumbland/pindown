@@ -108,12 +108,17 @@ def main():
             write_path = os.path.join(args.output, slug + ".md")
             
             # build a context for jinja
-            context = { 'description': pin.description.encode('utf-8'),
+            context = { 'description': pin.description,
                         'url': pin.url,
-                        'dt': pin.time.replace(tzinfo=utc_tz),
-                        'date': pin.time.replace(tzinfo=utc_tz).astimezone(local_tz).isoformat(),
+                        'time': pin.time.replace(tzinfo=utc_tz),
                         'tags': pin.tags,
-                        'extended': pin.extended.encode('utf-8') }
+                        'extended': pin.extended,
+                        'hash': pin.hash,
+                        'meta': pin.meta,
+                        'shared': pin.shared,
+                        'toread': pin.toread,
+                        # for convenience
+                        'date': pin.time.replace(tzinfo=utc_tz).astimezone(local_tz).isoformat() }
             
             # render template
             try:
