@@ -29,15 +29,30 @@ def main():
     global args
     args = parse_args()
 
+    # create logger
+    if args.verbosity >=2:
+        logging_level = logging.INFO
+    elif args.verbosity == 1:
+        logging_level = logging.WARNING
+    else:
+        logging_level = logging.NOTSET
+
+    logger.setBasicConfig(format='%(asctime)s:%(levelname)s:%(message)s',
+                          datefmt='%H:%M:%S',
+                          stream=sys.stdout,
+                          level=logging_level)
+    log = logging.getLogger(__name__)
+
+
     # check output path can be written to
     if not os.access(args.output, os.W_OK):
-        log("Can not write to '{0}'.".format(args.output))
+        log.error("Can not write to '{0}'.".format(args.output))
         sys.exit()
 
     # load config
     config = load_config()
     if config is False:
-        log("Could not open config.ini, quitting")
+        log.error("Could not open config.ini, quitting")
         sys.exit()
 
     # load stopwords
@@ -45,21 +60,20 @@ def main():
     try:
         for line in args.stopwords:
             stopwords.append(line.strip())
-        log("Loaded stopwords from '{0}'".format(args.stopwords.name), level=LOG_NOTICE)
+        log.debug("Loaded stopwords from '{0}'".format(args.stopwords.name))
     except Exception as e:
-        log("Could not load stopwords from '{0}': {1}".format(args.stopwords, e.message), level=LOG_ERROR)
-        stopwords.extend(get_default_stopwords())
-    log("{0} stopwords loaded.".format(len(stopwords), level=LOG_NOTICE))
-    
+        log.warning("Could not load stopwords from '{0}': {1}".format(args.stopwords, e.message))
+    log.debug("{0} stopwords loaded.".format(len(stopwords))
+
     # load template
     jinja_env = Environment(loader=PackageLoader('pindown', '.'),
                             trim_blocks=True,
                             lstrip_blocks=True)
     try:
         template = jinja_env.get_template(args.template.name)
-        log("Loaded template '{0}'".format(args.template.name), level=LOG_NOTICE)
+        log.debug("Loaded template '{0}'".format(args.template.name))
     except Exception as e:
-        log("Could not load custom template '{0}', using default".format(e.message), level=LOG_ERROR)
+        log.warning("Could not load custom template '{0}', using default".format(e.message))
         template = jinja_env.from_string("Title: {{ description }}\n"
                                          "Category: linklist\n"
                                          "Link: {{ url }}\n"
@@ -68,21 +82,21 @@ def main():
                                          "Status: draft\n"
                                          "\n"
                                          "{{ extended }}\n")
-    
+
     # prepare timezones
     if args.timezone is not None:
         try:
             local_tz = pytz.timezone(args.timezone)
         except Exception as e:
-            log("Could not assign custom timezone ({0})".format(e.message), level=LOG_ERROR)
+            log.error("Could not assign custom timezone ({0})".format(e.message))
     else:
         local_tz = pytz.timezone(config['local_tz'])
     utc_tz = pytz.UTC
-    log("Local timezone: {0}".format(local_tz), level=LOG_NOTICE)
-    
+    log.info("Local timezone: {0}".format(local_tz))
+
     # connect to api
     pb = pinboard.Pinboard(config['pinboard_api_token'])
-    
+
     # grab last updated date from api, compare to late updated date in config
     # all dates from pinboard are in UTC, just make this explicit
     last_update = pb.posts.update().replace(tzinfo=utc_tz)
@@ -91,22 +105,22 @@ def main():
     else:
         last_import = datetime.utcnow().replace(tzinfo=utc_tz)
         config['last_import'] = last_import
-    
+
     if last_update <= last_import:
         # no update
-        log("No update necessary.", level=LOG_NOTICE)
+        log.info("No update necessary.")
         sys.exit()
     else:
         # update
         pins = pb.posts.all(fromdt=last_import)
-        log("New pins: {0}".format(len(pins)))
-        
+        log.info("New pins: {0}".format(len(pins)))
+
         for pin in pins:
             # create filename from slug
             custom_slug_builder = Slugify(to_lower=True, max_length=32, stop_words=stopwords)
             slug = custom_slug_builder(pin.description)
             write_path = os.path.join(args.output, slug + ".md")
-            
+
             # build a context for jinja
             context = { 'description': pin.description,
                         'url': pin.url,
@@ -119,27 +133,27 @@ def main():
                         'toread': pin.toread,
                         # for convenience
                         'date': pin.time.replace(tzinfo=utc_tz).astimezone(local_tz).isoformat() }
-            
+
             # render template
             try:
                 output = template.render(context)
             except Exception as e:
-                log("Could not write '{0}.md': {1}".format(slug, e), level=LOG_ERROR)
+                log.error("Could not write '{0}.md': {1}".format(slug, e))
                 continue
-            
+
             # write output
             if args.debug is not True:
                 if not os.path.isfile(write_path):
                     with open(write_path, 'w') as f:
                         f.write(output)
-                    log("Wrote '{0}'".format(write_path), level=LOG_OUTPUT)
+                    log.info("Wrote '{0}'".format(write_path))
                 else:
-                    log("Skipped '{0}' (already exists)".format(write_path), level=LOG_OUTPUT)
+                    log.info("Skipped '{0}' (already exists)".format(write_path))
             else:
-                log("Skipped '{0}' (debug mode)".format(write_path), level=LOG_OUTPUT)
-        
+                log.info("Skipped '{0}' (debug mode)".format(write_path))
+
         # write config and quit
-        if args.debug is not True: 
+        if args.debug is not True:
             config['last_import'] = last_update.isoformat()
             save_config(config)
 
@@ -153,10 +167,10 @@ def load_config():
         config = {}
         for item in items:
             config[item[0]] = item[1]
-        log("Config loaded", level=LOG_NOTICE)
+        log.debug("Config loaded")
         return config
     except Exception as e:
-        log(e.message, level=LOG_ERROR)
+        log.error(e.message)
         return False
 
 def save_config(config):
@@ -169,9 +183,9 @@ def save_config(config):
             parser.write(f)
         return True
     except Exception as e:
-        log("Could not save config: " + e.message, level=LOG_ERROR)
+        log.error("Could not save config: " + e.message)
         return False
-    
+
 def parse_args():
     ap = argparse.ArgumentParser(prog="Pindown", description="Script to pull down recent bookmarks from Pinboard.in and write them to a Markdown-formatted text file suitable for Pelican.")
     ap.add_argument('-d',
@@ -199,7 +213,7 @@ def parse_args():
                     help="version information",
                     action="version",
                     version="%(prog)s 0.1")
-                    
+
     ap.add_argument('output',
                     help="path to write Markdown-formatted text files")
     return ap.parse_args()
@@ -213,10 +227,10 @@ def log(message, show_ts=True, level=1):
             except:
                 tz = pytz.UTC
             ts = dt.astimezone(tz).strftime("%H:%M")
-            print("[{0}] {1}".format(ts, message))
+            # print("[{0}] {1}".format(ts, message))
         else:
-            print(message)
-    
+            # print(message)
+
 def get_default_stopwords():
     return []
 
