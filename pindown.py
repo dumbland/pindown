@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import logging
 import os
 import os.path
 import pytz
@@ -27,6 +28,7 @@ sys.setdefaultencoding('utf-8')
 def main():
     # parse arguments
     global args
+    global log
     args = parse_args()
 
     # create logger
@@ -37,10 +39,11 @@ def main():
     else:
         logging_level = logging.NOTSET
 
-    logger.setBasicConfig(format='%(asctime)s:%(levelname)s:%(message)s',
+    logging.basicConfig(format='%(asctime)s:%(levelname)s:%(message)s',
                           datefmt='%H:%M:%S',
                           stream=sys.stdout,
                           level=logging_level)
+
     log = logging.getLogger(__name__)
 
 
@@ -63,7 +66,7 @@ def main():
         log.debug("Loaded stopwords from '{0}'".format(args.stopwords.name))
     except Exception as e:
         log.warning("Could not load stopwords from '{0}': {1}".format(args.stopwords, e.message))
-    log.debug("{0} stopwords loaded.".format(len(stopwords))
+    log.debug("{0} stopwords loaded.".format(len(stopwords)))
 
     # load template
     jinja_env = Environment(loader=PackageLoader('pindown', '.'),
@@ -217,23 +220,6 @@ def parse_args():
     ap.add_argument('output',
                     help="path to write Markdown-formatted text files")
     return ap.parse_args()
-
-def log(message, show_ts=True, level=1):
-    if (args.verbosity is not None and args.verbosity >= level) or args.debug is True:
-        dt = datetime.utcnow().replace(tzinfo=pytz.UTC)
-        if show_ts == True:
-            try:
-                tz = pytz.timezone(config['local_tz'])
-            except:
-                tz = pytz.UTC
-            ts = dt.astimezone(tz).strftime("%H:%M")
-            # print("[{0}] {1}".format(ts, message))
-        else:
-            # print(message)
-
-def get_default_stopwords():
-    return []
-
 
 
 if __name__ == "__main__":
