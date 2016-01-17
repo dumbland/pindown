@@ -3,7 +3,8 @@ Category: linklist
 Link: {{ url }}
 Date: {{ date }}
 Tags: {{ tags|join(', ') }}
-Status: draft
+{% if is_draft == true %}Status: draft
+{% endif %}
 
 {% for line in extended.split('\n') %}
 > {{ line }}

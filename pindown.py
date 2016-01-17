@@ -71,7 +71,7 @@ def main():
         template = jinja_env.get_template(args.template.name)
         log.debug("Loaded template '{0}'".format(args.template.name))
     except Exception as e:
-        log.warning("Could not load custom template '{0}', using default".format(e.message))
+        log.warning("Could not load custom template '{}', using default: {}".format(args.template.name, e.message))
         template = jinja_env.from_string("Title: {{ description }}\n"
                                          "Category: linklist\n"
                                          "Link: {{ url }}\n"
@@ -119,6 +119,14 @@ def main():
             slug = custom_slug_builder(pin.description)
             write_path = os.path.join(args.output, slug + ".md")
 
+            # does this post have a quick tag?
+            if args.quick is not "":
+                if args.quick in pin.tags:
+                    pin_is_draft = False;
+                    pin.tags.remove(args.quick)
+                else:
+                    pin_is_draft = True;
+
             # build a context for jinja
             context = { 'description': pin.description,
                         'url': pin.url,
@@ -129,6 +137,7 @@ def main():
                         'meta': pin.meta,
                         'shared': pin.shared,
                         'toread': pin.toread,
+                        'is_draft': pin_is_draft,
                         # for convenience
                         'date': pin.time.replace(tzinfo=utc_tz).astimezone(local_tz).isoformat() }
 
@@ -149,6 +158,7 @@ def main():
                     log.info("Skipped '{0}' (already exists)".format(write_path))
             else:
                 log.info("Skipped '{0}' (debug mode)".format(write_path))
+                # log.info(output)
 
         # write config and quit
         if args.debug is not True:
@@ -190,6 +200,12 @@ def parse_args():
                     '--debug',
                     action='store_true',
                     help="debug mode: don't write any files")
+    ap.add_argument('-q',
+                    '--quick',
+                    action='store',
+                    type=str,
+                    default='',
+                    help='quick tag: auto-publish posts with this tag.')
     ap.add_argument('-v',
                     '--verbosity',
                     action="count",
