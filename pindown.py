@@ -16,11 +16,6 @@ from jinja2 import Environment, PackageLoader
 from slugify import Slugify
 from tzlocal import get_localzone
 
-LOG_NOTICE = 2
-LOG_WARNING = 2
-LOG_ERROR = 1
-LOG_OUTPUT = 1
-
 # filthy unicode hack
 reload(sys)
 sys.setdefaultencoding('utf-8')
